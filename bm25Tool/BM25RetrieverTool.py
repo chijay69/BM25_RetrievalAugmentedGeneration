@@ -1,10 +1,15 @@
+import math
 import os.path
 import pickle
 from itertools import groupby
+from typing import List
 
 from smolagents import Tool
 
+from bm25Tool.query_bm25_retriever import load_or_build_retriever_state, k1, b
 from config import OUTPUT_DIRECTORY, RETRIEVER_FILE
+from converter import Document
+from converter.clean_text import clean_text
 
 
 class BM25RetrieverTool(Tool):
@@ -84,6 +89,30 @@ class BM25RetrieverTool(Tool):
                 output.append("\n==============\n")
             output.append("\n=======================\n")
         return "\n".join(output)
+
+    def bm25_score(self, query: str, documents: Document):
+        """
+        Calculates the bm25 score for a document in relevance to the query.
+        :param query:
+        :param documents:
+        :return:
+        """
+        documents, N, avgdl, term_document_freq = load_or_build_retriever_state(OUTPUT_DIRECTORY, RETRIEVER_FILE)
+        query_terms: List = clean_text(query).split()
+        doc_scores: List = []
+
+        for doc in documents:
+            score: int = 0
+            for term in query_terms:
+                if term in doc.term_freq:
+                    # Use precomputed document frequency
+                    df = self.term_document_freq.get(term, 1)
+                    idf = math.log((N - df + 0.5) / (df + 0.5) + 1)
+                    tf = doc.term_freq.get(term, 0)
+                    score += idf * ((tf * (k1 + 1)) / (tf + k1 * (1 - b + b * (doc.doc_len / avgdl))))
+            doc_scores.append((doc, score))
+        return sorted(doc_scores, key=lambda x: x[1], reverse=True)
+
 
 
 
