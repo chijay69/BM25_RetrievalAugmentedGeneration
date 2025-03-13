@@ -1,5 +1,6 @@
 import math
-import os.path
+import os
+import pathlib
 import pickle
 import re
 import sys
@@ -12,7 +13,19 @@ from config import OUTPUT_DIRECTORY, RETRIEVER_FILE, CHUNK_SIZE, LANGUAGE, TOP_K
 from converter.Document import Document
 from converter.clean_text import clean_text
 
-output_directory = OUTPUT_DIRECTORY
+
+# Get the project root directory (directory containing config.py)
+project_root = pathlib.Path(__file__).resolve().parts
+project_root1 = "\\".join(part.rstrip("\\") if part.endswith("\\") else part for part in project_root[:-2])
+
+
+# Construct the output_directory path relative to the project root
+# output_directory = project_root.joinpath(OUTPUT_DIRECTORY)
+output_directory = os.path.join(project_root1, OUTPUT_DIRECTORY)
+print(output_directory)
+
+var = [print(filename) for filename in os.listdir(output_directory)]
+
 retriever_file = RETRIEVER_FILE
 chunk_size = CHUNK_SIZE
 k1, b = 1.5, 0.75  # BM25 parameters
@@ -45,7 +58,7 @@ def tokenize_sentences(text: str) -> List[str]:
     """Tokenizes text into sentences."""
     return nltk.sent_tokenize(text, LANGUAGE)
 
-def create_document_chunk(metadata: Dict[str, str], section_title: str, chunk_content: str) -> Document:
+def create_document_chunk(metadata: Dict[str, str], chunk_content: str) -> Document:
     """Creates a Document object from chunk content and metadata."""
     return Document(chunk_content=chunk_content, metadata=metadata)
 
@@ -61,7 +74,7 @@ def split_section_into_chunks(section: Set[LiteralString], metadata: Dict[str, s
         sentence_length = len(sentence)
         if current_length + sentence_length > chunk_size:
             chunk_content = f"Document: {metadata['filename']}\nSection: {section_title}\nSnippet: {' '.join(current_chunk)}"
-            chunks.append(create_document_chunk(metadata, section_title, chunk_content))
+            chunks.append(create_document_chunk(metadata, chunk_content))
             current_chunk = [sentence]
             current_length = sentence_length
         else:
@@ -70,18 +83,18 @@ def split_section_into_chunks(section: Set[LiteralString], metadata: Dict[str, s
 
     if current_chunk:
         chunk_content = f"Document: {metadata['filename']}\nSection: {section_title}\nSnippet: {' '.join(current_chunk)}"
-        chunks.append(create_document_chunk(metadata, section_title, chunk_content))
+        chunks.append(create_document_chunk(metadata, chunk_content))
 
     return chunks
 
-def build_document_index(output_directory: str) -> Tuple[List[Document], Dict[str, int]]:
+def build_document_index(output_directory1: str) -> Tuple[List[Document], Dict[str, int]]:
     """Builds an index of documents and term frequencies."""
     documents = []
     term_document_freq = {}
 
-    for filename in os.listdir(output_directory):
+    for filename in os.listdir(output_directory1):
         if filename.endswith(".md") and not filename.endswith('_toc.md'):
-            filepath = os.path.join(output_directory, filename)
+            filepath = os.path.join(output_directory1, filename)
             content = read_file_content(filepath)
             sections = split_content_into_sections(content)
 
@@ -120,14 +133,14 @@ def rank_documents(query: str, documents: List[Document], N: int, avgdl: float, 
         doc_scores.append((doc, score))
     return sorted(doc_scores, key=lambda x: x[1], reverse=True)
 
-def load_or_build_retriever_state(output_directory: str, retriever_file: str, refresh: bool = False) -> Tuple[List[Document], int, float, Dict[str, int]]:
+def load_or_build_retriever_state(output_directory2: str, retriever_file: str, refresh: bool = False) -> Tuple[List[Document], int, float, Dict[str, int]]:
     """Loads or builds the retriever state."""
     if os.path.exists(retriever_file) and not refresh:
         with open(retriever_file, 'rb') as f:
             state = pickle.load(f)
             return state.get("documents", []), state.get("N", 0), state.get("avgdl", 0), state.get("term_document_freq", {})
 
-    documents, term_document_freq = build_document_index(output_directory)
+    documents, term_document_freq = build_document_index(output_directory2)
     N = len(documents) if documents else 0
     avgdl = sum(doc.doc_len for doc in documents) / N if documents else 0
 
@@ -137,14 +150,14 @@ def load_or_build_retriever_state(output_directory: str, retriever_file: str, re
 
     return documents, N, avgdl, term_document_freq
 
-def print_results(results: List[Tuple[Document, float]], output_directory: str, show_full_text: bool):
+def print_results(results: List[Tuple[Document, float]], output_directory3: str, show_full_text: bool):
     """Prints the search results."""
     results.sort(key=lambda doc: doc[0].metadata['filename'])
     grouped_result = groupby(results, key=lambda doc: doc[0].metadata['filename'])
 
     for doc_name, group in grouped_result:
         print(f"========================= {doc_name} ============================")
-        toc_file_path = os.path.join(output_directory, doc_name.rsplit(".", 1)[0] + "_toc.md")
+        toc_file_path = os.path.join(output_directory3, doc_name.rsplit(".", 1)[0] + "_toc.md")
         if os.path.exists(toc_file_path):
             print("Table of Content\n" + read_file_content(toc_file_path) + "\n=====\n")
 
@@ -159,7 +172,8 @@ def main():
     """Main function to execute the search."""
     documents, N, avgdl, term_document_freq = load_or_build_retriever_state(output_directory, retriever_file)
 
-    query = sys.argv[1] if len(sys.argv) > 1 else ""
+    # query = sys.argv[1] if len(sys.argv) > 1 else ""
+    query: str = "Summarize the text"
     if not query:
         print("Please provide a query argument.")
         sys.exit(1)
@@ -168,6 +182,3 @@ def main():
 
     results = rank_documents(query, documents, N, avgdl, term_document_freq)[:TOP_K]
     print_results(results, output_directory, show_full_text)
-
-if __name__ == "__main__":
-    main()

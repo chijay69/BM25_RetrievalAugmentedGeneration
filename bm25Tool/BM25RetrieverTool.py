@@ -1,5 +1,6 @@
 import math
 import os.path
+import pathlib
 import pickle
 from itertools import groupby
 from typing import List
@@ -11,8 +12,11 @@ from config import OUTPUT_DIRECTORY, RETRIEVER_FILE
 from converter import Document
 from converter.clean_text import clean_text
 
+cwd1 = pathlib.Path.cwd()
+parent_dir = cwd1.parent
+output_directory = os.path.join(parent_dir, OUTPUT_DIRECTORY)
 
-class BM25RetrieverTool(Tool):
+class BM25Tool(Tool):
     """
     A BM25 Tool. It provides functions to help the perform specific actions.
     """
@@ -97,7 +101,7 @@ class BM25RetrieverTool(Tool):
         :param documents:
         :return:
         """
-        documents, N, avgdl, term_document_freq = load_or_build_retriever_state(OUTPUT_DIRECTORY, RETRIEVER_FILE)
+        documents, N, avgdl, term_document_freq = load_or_build_retriever_state(output_directory, RETRIEVER_FILE)
         query_terms: List = clean_text(query).split()
         doc_scores: List = []
 
@@ -115,4 +119,9 @@ class BM25RetrieverTool(Tool):
 
 
 
+if __name__ == "__main__":
+
+    bm25tool = BM25Tool(output_directory, RETRIEVER_FILE)
+    results = bm25tool.forward("Summarize the text")
+    print(results)
 
