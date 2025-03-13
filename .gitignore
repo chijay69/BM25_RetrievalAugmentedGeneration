@@ -1,6 +1,7 @@
 docs
 fileLogs
 test_agent.py
-*config
-*.env
+config*
+config
+.env*
 .idea/**
