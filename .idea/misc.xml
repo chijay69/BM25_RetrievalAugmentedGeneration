@@ -3,6 +3,7 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.13 (.menv)" />
   </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.13 (BM25_RetrievalAugmentedGeneration)" project-jdk-type="Python SDK" />
   <component name="accountSettings">
     <option name="activeRegion" value="us-east-1" />
     <option name="recentlyUsedRegions">

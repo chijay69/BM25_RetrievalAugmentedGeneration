@@ -44,7 +44,7 @@ class Document:
         """
         Computes and returns the clean terms from a text.
         """
-        self.clean_terms = clean_text(self.chunk_content).split()
+        self.clean_terms: List[str] = clean_text(self.chunk_content).split()
         return self.clean_terms
 
     def compute_term_freq(self) -> Dict[str, int]:
