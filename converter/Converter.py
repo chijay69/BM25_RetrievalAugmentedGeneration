@@ -6,7 +6,7 @@ from config import CONVERTER_LOG_PATH
 
 class Converter:
     """
-    Envelops helper methods to convert various text formats to markdown text format
+    Envelops helper methods to convert various text formats to Markdown text format
     """
 
     def __init__(self, file_input_path: str = None):
