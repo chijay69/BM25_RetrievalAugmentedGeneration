@@ -1,7 +1,7 @@
-import logging
 import docx
 import pypandoc
-from config import CONVERTER_LOG_PATH
+
+from bm25Tool.setup_logger import setup_logger
 
 
 class Converter:
@@ -15,13 +15,7 @@ class Converter:
         """
         self.txt_file = None
         self.input_path: str = file_input_path
-        logging.basicConfig(level=logging.INFO,  # Set the minimum logging level
-                            format='%(asctime)s - %(levelname)s - %(message)s',  # Define the log message format
-                            filename=CONVERTER_LOG_PATH,  # Optional: Log to a file
-                            filemode='a')  # Optional: Append to the log file (default), or 'w' to overwrite
-
-        self.log = logging.getLogger("Converter")
-
+        setup_logger(__file__)
 
     def check_file_path(self):
         if self.input_path is None:

@@ -15,7 +15,7 @@ OUTPUT_PATH = os.path.join(BASE_DIR, get_output_dir(CONFIG_PATH))
 LOG_PATH = os.path.join(BASE_DIR, 'logs/build_document.log')
 
 
-async def load_or_build_retriever_state(retriever_file: str = None, refresh: bool = False)-> tuple[Any, Any, Any, Any]:
+def load_or_build_retriever_state(retriever_file: str = None, refresh: bool = False)-> tuple[Any, Any, Any, Any]:
     """
     Loads a retriever file from the path provided.
     :param refresh: boolean
@@ -30,7 +30,7 @@ async def load_or_build_retriever_state(retriever_file: str = None, refresh: boo
                 state: pickle = pickle.load(file)
                 return state.get("documents", []), state.get("N", 0), state.get("avgdl", 0), state.get("term_document_freq", {})
 
-        documents, term_frequency = await build_document_index(input_dir=DATA_PATH, output_dir=OUTPUT_PATH)
+        documents, term_frequency = build_document_index(input_dir=DATA_PATH, output_dir=OUTPUT_PATH)
         N: int = len(documents) if documents else 0
         avgdl: float = sum(doc.doc_len for doc in documents)
 

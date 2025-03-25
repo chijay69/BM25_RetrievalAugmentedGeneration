@@ -1,8 +1,6 @@
+"""gen_toc.py"""
 import re
 
-from config import OUTPUT_DIRECTORY
-
-output_directory = OUTPUT_DIRECTORY
 
 def generate_toc(md_content: str) -> str:
     """

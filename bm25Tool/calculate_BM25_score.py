@@ -8,7 +8,6 @@ from converter.Document import Document
 from converter.clean_text import clean_text
 
 BASE_DIR:str = get_base_directory()
-
 CONFIG_PATH:str = os.path.join(BASE_DIR, "config.ini")
 
 k1, b = get_bm25_parameters(CONFIG_PATH) # BM25 parameters
